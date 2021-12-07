@@ -1,14 +1,10 @@
 package com.example.pathfromuri;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-
 import android.Manifest;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -27,6 +23,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -47,6 +49,7 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -56,7 +59,6 @@ import java.util.Map;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Retrofit;
@@ -77,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
     TextView choose;
     Uri profile_uri;
     CommonFunction commonFunction;
+    Uri photoURI;
+    File photoFile = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,8 +126,8 @@ public class MainActivity extends AppCompatActivity {
         upload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Upload_priscription();
-                //ImageUpload();
+                //Upload_priscription();
+                ImageUpload();
             }
         });
 
@@ -145,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (!imageUrl.equals("") && imageUrl != null) {
             File file = new File(imageUrl);
+
             RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), file);
             image = MultipartBody.Part.createFormData("image", file.getName(), requestFile);
         }
@@ -212,14 +217,14 @@ public class MainActivity extends AppCompatActivity {
                     startActivityForResult(takePicture, profileCamera);*/
                     Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                        File photoFile = null;
+
                         try {
                             photoFile = createImageFile();
                         } catch (IOException ex) {
 
                         }
                         if (photoFile != null) {
-                            Uri photoURI = FileProvider.getUriForFile(MainActivity.this,
+                            photoURI = FileProvider.getUriForFile(MainActivity.this,
                                     "com.example.pathfromuri.fileprovider",
                                     photoFile);
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
@@ -256,7 +261,6 @@ public class MainActivity extends AppCompatActivity {
                 storageDir
         );
         imageUrl = image.getAbsolutePath();
-        Log.e("path",imageUrl);
         return image;
     }
 
@@ -292,11 +296,24 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (requestCode == PROFILE_CAMERA) {
+
+
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
             profile_bitmap = BitmapFactory.decodeFile(imageUrl, options);
+
+            /*Uri imageUri = getImageUri(getApplicationContext(), profile_bitmap);
+            String path = RealPathUtil.getRealPath(getApplicationContext(), imageUri);*/
+            // Log.e("path", path);
+
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String imageFileName = "JPEG_" + timeStamp + "_";
+            savePhoto(profile_bitmap, imageFileName);
+            Log.e("path", imageUrl);
+
             image.setImageBitmap(profile_bitmap);
         }
+
 
     }
 
@@ -358,4 +375,27 @@ public class MainActivity extends AppCompatActivity {
         Volley.newRequestQueue(this).add(volleyMultipartRequest);
 
     }
+
+
+    public void savePhoto(Bitmap imaginative, String filenameone) {
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+        File mypath = new File(directory, filenameone);
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(mypath);
+            imaginative.compress(Bitmap.CompressFormat.PNG, 100, fos);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        imageUrl = directory.getAbsolutePath() + "/" + filenameone;
+
+    }
+
 }
