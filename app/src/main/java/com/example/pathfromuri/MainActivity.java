@@ -122,8 +122,8 @@ public class MainActivity extends AppCompatActivity {
         upload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Upload_priscription();
-                ImageUpload();
+                Upload_priscription();
+                //ImageUpload();
             }
         });
 
@@ -256,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
                 storageDir
         );
         imageUrl = image.getAbsolutePath();
+        Log.e("path",imageUrl);
         return image;
     }
 
