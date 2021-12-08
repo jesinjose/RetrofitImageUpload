@@ -220,6 +220,7 @@ public class MainActivity extends AppCompatActivity {
 
                         try {
                             photoFile = createImageFile();
+                            Log.e("path",photoFile.getAbsolutePath());
                         } catch (IOException ex) {
 
                         }
@@ -280,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
                 Uri imageUri = data.getData();
                 profile_uri = imageUri;
                 imageUrl = RealPathUtil.getRealPath(getApplicationContext(), profile_uri);
-                Log.e("path", imageUrl);
+                Log.e("url",imageUrl);
                 try {
                     profile_bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), profile_uri);
                 } catch (IOException e) {
@@ -301,16 +302,6 @@ public class MainActivity extends AppCompatActivity {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
             profile_bitmap = BitmapFactory.decodeFile(imageUrl, options);
-
-            /*Uri imageUri = getImageUri(getApplicationContext(), profile_bitmap);
-            String path = RealPathUtil.getRealPath(getApplicationContext(), imageUri);*/
-            // Log.e("path", path);
-
-            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            String imageFileName = "JPEG_" + timeStamp + "_";
-            savePhoto(profile_bitmap, imageFileName);
-            Log.e("path", imageUrl);
-
             image.setImageBitmap(profile_bitmap);
         }
 
